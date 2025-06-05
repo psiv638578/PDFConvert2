@@ -13,6 +13,8 @@ import openpyxl
 class ExcelSheetsDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
+        if parent:
+            self.setWindowIcon(parent.windowIcon())
         self.setWindowTitle("Выбор листов Excel")
         self.setMinimumSize(600, 400)
 
