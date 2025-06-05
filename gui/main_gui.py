@@ -21,6 +21,7 @@ from PyQt5.QtWidgets import (
     QProgressBar, QStatusBar,
     QMessageBox)
 from PyQt5.QtCore import Qt, QTimer, pyqtSlot
+from PyQt5.QtGui import QIcon, QPixmap, QBrush
 from gui.dialogs_project import ProjectSelectDialog
 from gui.dialogs_list import TaskListDialog
 from gui.dialogs_excel import ExcelSheetsDialog
@@ -34,6 +35,10 @@ class MainWindow(QMainWindow):
         self.log_message(" Старт", divider=True)
         self.setWindowTitle(f"PDFConvert {read_version()}")
         self.setMinimumSize(350, 250)
+
+        icon_path = os.path.join(os.path.dirname(__file__), "..", "logo_ps.png")
+        self.app_icon = QIcon(icon_path)
+        self.setWindowIcon(self.app_icon)
 
         self.ini_path = os.path.join(os.getcwd(), "setup.ini")
 
@@ -129,6 +134,7 @@ class MainWindow(QMainWindow):
 
     def select_project(self):
         dialog = ProjectSelectDialog(ini_path=self.ini_path, parent=self)
+        dialog.setWindowIcon(self.app_icon)
         if dialog.exec_() == QDialog.Accepted:
 
             self.config = configparser.ConfigParser()
@@ -228,7 +234,8 @@ class MainWindow(QMainWindow):
 
             self.log_message(f"Выбрано файлов: {len(files)}")
             for f in files:
-                self.log_message(f" - {f.replace('\\', '/')}")
+                normalized = f.replace("\\", "/")
+                self.log_message(f" - {normalized}")
 
             QMessageBox.information(self, "Файлы выбраны", "\n".join(files))
 
@@ -343,6 +350,7 @@ class MainWindow(QMainWindow):
         try:
             from gui.dialogs_list import TaskListDialog
             dialog = TaskListDialog(self)
+            dialog.setWindowIcon(self.app_icon)
             dialog.exec_()
         except Exception as e:
             QMessageBox.critical(self, "Ошибка", f"Не удалось открыть диалог заданий:\n{e}")
@@ -444,6 +452,7 @@ class MainWindow(QMainWindow):
 
         from gui.dialogs_list import TaskListDialog
         dialog = TaskListDialog(self, config, ini_path)
+        dialog.setWindowIcon(self.app_icon)
         dialog.exec_()
 
     def open_manual(self):
@@ -456,18 +465,15 @@ class MainWindow(QMainWindow):
     # ui_about_dialog
     def open_about(self):
         version = read_version()
-        
-        # Путь к readme.txt (рядом со скриптом)
+
         readme_path = os.path.join(os.path.dirname(__file__), "..", "readme.txt")
         readme_path = os.path.abspath(readme_path)
-
         try:
             with open(readme_path, "r", encoding="utf-8") as f:
                 readme_content = f.read().strip()
         except FileNotFoundError:
             readme_content = "Файл readme.txt не найден."
 
-        # Формируем сообщение
         message = (
             f"PDFConvert {version}\n"
             f"© 2025, psiv\n"
@@ -476,11 +482,40 @@ class MainWindow(QMainWindow):
             f"{readme_content}"
         )
 
-        QMessageBox.information(
-            self,
-            "О программе",
-            message
+        dialog = QDialog(self)
+        dialog.setWindowTitle("О программе")
+        dialog.setWindowIcon(self.app_icon)
+        dialog.resize(400, 300)
+
+        bg_path = os.path.join(os.path.dirname(__file__), "..", "logo_spp.png")
+        bg_pixmap = QPixmap(bg_path)
+
+        def update_background():
+            scaled = bg_pixmap.scaled(
+                dialog.size(),
+                Qt.KeepAspectRatioByExpanding,
+                Qt.SmoothTransformation
+            )
+            palette = dialog.palette()
+            palette.setBrush(dialog.backgroundRole(), QBrush(scaled))
+            dialog.setPalette(palette)
+
+        def on_resize(event):
+            update_background()
+            QDialog.resizeEvent(dialog, event)
+
+        dialog.resizeEvent = on_resize
+        update_background()
+
+        layout = QVBoxLayout(dialog)
+        label = QLabel(message)
+        label.setAlignment(Qt.AlignCenter)
+        label.setStyleSheet(
+            "background-color: rgba(255, 255, 255, 200); padding: 10px;"
         )
+        layout.addWidget(label, alignment=Qt.AlignCenter)
+
+        dialog.exec_()
 
 
     def open_todo(self):

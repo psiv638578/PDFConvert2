@@ -8,6 +8,8 @@ import os
 class PageNumberingDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
+        if parent:
+            self.setWindowIcon(parent.windowIcon())
         self.setWindowTitle("Нумерация страниц в DOCX")
         self.setMinimumSize(500, 400)
 
