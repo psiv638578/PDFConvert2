@@ -11,6 +11,8 @@ import os
 class ProjectSelectDialog(QDialog):
     def __init__(self, ini_path, parent=None):
         super().__init__(parent)
+        if parent:
+            self.setWindowIcon(parent.windowIcon())
         self.setWindowTitle("Выбор проекта")
         self.setMinimumSize(600, 400)
 

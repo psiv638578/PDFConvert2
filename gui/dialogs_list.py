@@ -13,6 +13,8 @@ class TaskListDialog(QDialog):
 
     def __init__(self, parent=None, config=None, ini_path=None):
         super().__init__(parent)
+        if parent:
+            self.setWindowIcon(parent.windowIcon())
         self.config = config
         self.ini_path = ini_path  # ✅ теперь путь приходит извне
         self.project_name = self.config.get("global", "current_project", fallback=None)
