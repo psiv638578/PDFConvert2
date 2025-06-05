@@ -122,6 +122,24 @@ class MainWindow(QMainWindow):
         self.compass_all_action.triggered.connect(lambda: self.update_compass_mode("all"))
         self.compass_selected_action.triggered.connect(lambda: self.update_compass_mode("selected"))
 
+        # --- Настройка меню -------------------------------------------------
+        settings_menu = menubar.addMenu("Настройка")
+
+        language_menu = QMenu("Язык интерфейса", self)
+        for lang in ["Русский", "Українська", "English"]:
+            action = QAction(lang, self)
+            action.triggered.connect(self.show_in_development)
+            language_menu.addAction(action)
+
+        theme_menu = QMenu("Цветовая схема", self)
+        for theme in ["Светлая", "Тёмная"]:
+            action = QAction(theme, self)
+            action.triggered.connect(self.show_in_development)
+            theme_menu.addAction(action)
+
+        settings_menu.addMenu(language_menu)
+        settings_menu.addMenu(theme_menu)
+
         help_menu = menubar.addMenu("Справка")
         help_menu.addAction("Руководство пользователя", self.open_manual)
         help_menu.addAction("О программе", self.open_about)
@@ -228,7 +246,8 @@ class MainWindow(QMainWindow):
 
             self.log_message(f"Выбрано файлов: {len(files)}")
             for f in files:
-                self.log_message(f" - {f.replace('\\', '/')}")
+                normalized_f = f.replace("\\", "/")
+                self.log_message(f" - {normalized_f}")
 
             QMessageBox.information(self, "Файлы выбраны", "\n".join(files))
 
@@ -558,7 +577,11 @@ class MainWindow(QMainWindow):
         QMessageBox.critical(self, "Файлы заблокированы", message)
         QApplication.quit()
 
-    
+    # --- Заглушки меню Настройка -----------------------------------------
+    def show_in_development(self):
+        QMessageBox.information(self, "В разработке", "В разработке")
+
+
      # ui_status_message_handler
     def handle_status_message(self, text):
         from PyQt5.QtWidgets import QMessageBox
